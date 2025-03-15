@@ -5,16 +5,31 @@ const Coupon = require('../models/Coupon');
 // Middleware to verify admin token
 const verifyToken = (req, res, next) => {
     const token = req.cookies.token;
+
     if (!token) {
-        return res.status(401).json({ message: 'Unauthorized' });
+        console.log('No token found in cookies');
+        return res.status(401).json({ message: 'No authentication token found' });
+    }
+
+    if (!process.env.JWT_SECRET) {
+        console.error('JWT_SECRET is not set in environment variables');
+        return res.status(500).json({ message: 'Server configuration error' });
     }
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log('Token verified successfully for admin:', decoded.id);
         req.adminId = decoded.id;
         next();
     } catch (error) {
-        res.status(401).json({ message: 'Invalid token' });
+        console.error('Token verification failed:', error.message);
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ message: 'Token has expired' });
+        }
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Invalid token' });
+        }
+        res.status(401).json({ message: 'Token verification failed' });
     }
 };
 

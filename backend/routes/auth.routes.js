@@ -43,7 +43,9 @@ router.post('/signup', async (req, res) => {
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            maxAge: 24 * 60 * 60 * 1000 // 1 day
+            sameSite: 'None',
+            maxAge: 24 * 60 * 60 * 1000, // 1 day
+            path: '/'
         });
 
         res.status(201).json({ message: 'Admin created successfully' });
@@ -73,14 +75,16 @@ router.post('/login', async (req, res) => {
         // Generate JWT token
         const token = jwt.sign(
             { id: admin._id },
-            process.env.JWT_SECRET || 'your-secret-key',
+            process.env.JWT_SECRET,
             { expiresIn: '1d' }
         );
 
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            maxAge: 24 * 60 * 60 * 1000 // 1 day
+            sameSite: 'None',
+            maxAge: 24 * 60 * 60 * 1000, // 1 day
+            path: '/'
         });
 
         res.json({ message: 'Login successful' });
