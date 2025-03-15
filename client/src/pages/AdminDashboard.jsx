@@ -20,6 +20,8 @@ function AdminDashboard() {
     description: "",
     expiryDate: "",
   });
+  const [editingCoupon, setEditingCoupon] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const { isDark } = useTheme();
 
   useEffect(() => {
@@ -160,6 +162,71 @@ function AdminDashboard() {
     }
   };
 
+  const handleEditClick = (coupon) => {
+    setEditingCoupon({
+      ...coupon,
+      expiryDate: new Date(coupon.expiryDate).toISOString().slice(0, 16),
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditChange = (e) => {
+    setEditingCoupon({
+      ...editingCoupon,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleUpdateCoupon = async (e) => {
+    e.preventDefault();
+    try {
+      // Validate inputs
+      if (!editingCoupon.description || !editingCoupon.expiryDate) {
+        toast.error("Please fill in all fields", {
+          id: "edit-fields-required-error",
+        });
+        return;
+      }
+
+      // Validate description
+      if (
+        editingCoupon.description.trim().toLowerCase() === "null" ||
+        editingCoupon.description.trim() === ""
+      ) {
+        toast.error("Invalid description", {
+          id: "edit-invalid-description-error",
+        });
+        return;
+      }
+
+      // Validate expiry date
+      const expiryDate = new Date(editingCoupon.expiryDate);
+      if (isNaN(expiryDate.getTime())) {
+        toast.error("Invalid expiry date", { id: "edit-invalid-date-error" });
+        return;
+      }
+
+      const couponData = {
+        description: editingCoupon.description.trim(),
+        expiryDate: expiryDate.toISOString(),
+      };
+
+      await updateCoupon(editingCoupon._id, couponData);
+      toast.success("Coupon updated successfully", {
+        id: "update-coupon-success",
+      });
+      setShowEditModal(false);
+      setEditingCoupon(null);
+      fetchCoupons();
+    } catch (err) {
+      let errorMessage = "Failed to update coupon";
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      }
+      toast.error(errorMessage, { id: "update-coupon-error" });
+    }
+  };
+
   if (loading) {
     return (
       <div className={`text-center ${isDark ? "text-white" : "text-gray-900"}`}>
@@ -169,7 +236,7 @@ function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {/* Admin Header with Logout */}
       <div
         className={`${
@@ -537,7 +604,17 @@ function AdminDashboard() {
                     >
                       {new Date(coupon.expiryDate).toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap space-x-2">
+                      <button
+                        onClick={() => handleEditClick(coupon)}
+                        className={`px-3 py-1 rounded-md text-white transition-all duration-300 ease-in-out hover:scale-105 active:scale-95 ${
+                          isDark
+                            ? "bg-blue-600 hover:bg-blue-700"
+                            : "bg-blue-500 hover:bg-blue-600"
+                        }`}
+                      >
+                        Edit
+                      </button>
                       <button
                         onClick={() =>
                           toggleCouponStatus(coupon._id, coupon.isActive)
@@ -558,6 +635,110 @@ function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div
+            className={`${
+              isDark
+                ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
+                : "bg-white"
+            } rounded-lg shadow-xl max-w-md w-full p-6 relative`}
+          >
+            <h3
+              className={`text-xl font-bold mb-4 ${
+                isDark ? "text-blue-400" : "text-blue-600"
+              }`}
+            >
+              Edit Coupon
+            </h3>
+            <form onSubmit={handleUpdateCoupon} className="space-y-4">
+              <div>
+                <label
+                  className={`block text-sm font-medium ${
+                    isDark ? "text-gray-300" : "text-blue-700"
+                  }`}
+                >
+                  Code
+                </label>
+                <input
+                  type="text"
+                  value={editingCoupon.code}
+                  disabled
+                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 bg-gray-100 cursor-not-allowed ${
+                    isDark ? "text-gray-400" : "text-gray-500"
+                  }`}
+                />
+              </div>
+              <div>
+                <label
+                  className={`block text-sm font-medium ${
+                    isDark ? "text-gray-300" : "text-blue-700"
+                  }`}
+                >
+                  Description
+                </label>
+                <input
+                  type="text"
+                  name="description"
+                  value={editingCoupon.description}
+                  onChange={handleEditChange}
+                  required
+                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 ${
+                    isDark
+                      ? "bg-gray-800 border-gray-700 text-white"
+                      : "bg-white border-gray-300 text-gray-900"
+                  }`}
+                />
+              </div>
+              <div>
+                <label
+                  className={`block text-sm font-medium ${
+                    isDark ? "text-gray-300" : "text-blue-700"
+                  }`}
+                >
+                  Expiry Date
+                </label>
+                <input
+                  type="datetime-local"
+                  name="expiryDate"
+                  value={editingCoupon.expiryDate}
+                  onChange={handleEditChange}
+                  required
+                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 ${
+                    isDark
+                      ? "bg-gray-800 border-gray-700 text-white"
+                      : "bg-white border-gray-300 text-gray-900"
+                  }`}
+                />
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingCoupon(null);
+                  }}
+                  className={`px-4 py-2 rounded-md ${
+                    isDark
+                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  Update
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <style>{`
         @keyframes shimmer {
