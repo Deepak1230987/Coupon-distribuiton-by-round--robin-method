@@ -25,7 +25,7 @@ export const adminLogout = () => api.post("/auth/logout");
 export const addCoupon = (couponData) =>
   api.post("/api/admin/coupons", couponData);
 
-export const getCoupons = () => api.get("/admin/coupons");
+export const getCoupons = () => api.get("/api/admin/coupons");
 
 export const updateCoupon = (id, data) =>
   api.put(`/api/admin/coupons/${id}`, data);
