@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useTheme } from "../context/ThemeContext";
 import {
@@ -6,9 +7,11 @@ import {
   getCoupons,
   getClaims,
   updateCoupon,
+  adminLogout,
 } from "../services/api";
 
 function AdminDashboard() {
+  const navigate = useNavigate();
   const [coupons, setCoupons] = useState([]);
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +33,7 @@ function AdminDashboard() {
       setCoupons(response.data);
     } catch (err) {
       console.error("Error fetching coupons:", err);
-      toast.error("Failed to fetch coupons");
+      toast.error("Failed to fetch coupons", { id: "fetch-coupons-error" });
     }
   };
 
@@ -40,7 +43,7 @@ function AdminDashboard() {
       setClaims(response.data);
     } catch (err) {
       console.error("Error fetching claims:", err);
-      toast.error("Failed to fetch claims");
+      toast.error("Failed to fetch claims", { id: "fetch-claims-error" });
     } finally {
       setLoading(false);
     }
@@ -58,7 +61,9 @@ function AdminDashboard() {
     try {
       // Validate inputs
       if (!newCoupon.code || !newCoupon.description || !newCoupon.expiryDate) {
-        toast.error("Please fill in all fields");
+        toast.error("Please fill in all fields", {
+          id: "fields-required-error",
+        });
         return;
       }
 
@@ -67,7 +72,7 @@ function AdminDashboard() {
         newCoupon.code.trim().toUpperCase() === "NULL" ||
         newCoupon.code.trim() === ""
       ) {
-        toast.error("Invalid coupon code");
+        toast.error("Invalid coupon code", { id: "invalid-code-error" });
         return;
       }
 
@@ -76,20 +81,22 @@ function AdminDashboard() {
         newCoupon.description.trim().toLowerCase() === "null" ||
         newCoupon.description.trim() === ""
       ) {
-        toast.error("Invalid description");
+        toast.error("Invalid description", { id: "invalid-description-error" });
         return;
       }
 
       // Validate expiry date
       const expiryDate = new Date(newCoupon.expiryDate);
       if (isNaN(expiryDate.getTime())) {
-        toast.error("Invalid expiry date");
+        toast.error("Invalid expiry date", { id: "invalid-date-error" });
         return;
       }
 
       // Ensure expiry date is in the future
       if (expiryDate <= new Date()) {
-        toast.error("Expiry date must be in the future");
+        toast.error("Expiry date must be in the future", {
+          id: "future-date-error",
+        });
         return;
       }
 
@@ -103,21 +110,12 @@ function AdminDashboard() {
         claimedBy: [],
       };
 
-      console.log("Attempting to create coupon with data:", couponData);
-
       const response = await addCoupon(couponData);
       console.log("Server response:", response.data);
-      toast.success("Coupon added successfully");
+      toast.success("Coupon added successfully", { id: "add-coupon-success" });
       setNewCoupon({ code: "", description: "", expiryDate: "" });
       fetchCoupons();
     } catch (err) {
-      console.error("Full error details:", {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-        statusText: err.response?.statusText,
-      });
-
       let errorMessage = "Failed to add coupon";
 
       if (err.response?.status === 401) {
@@ -134,18 +132,31 @@ function AdminDashboard() {
           "Cannot connect to server. Please check if the server is running.";
       }
 
-      toast.error(errorMessage);
+      toast.error(errorMessage, { id: "add-coupon-error" });
     }
   };
 
   const toggleCouponStatus = async (id, currentStatus) => {
     try {
       await updateCoupon(id, { isActive: !currentStatus });
-      toast.success("Coupon status updated");
+      toast.success("Coupon status updated", { id: "status-update-success" });
       fetchCoupons();
     } catch (err) {
       console.error("Error updating coupon status:", err);
-      toast.error("Failed to update coupon status");
+      toast.error("Failed to update coupon status", {
+        id: "status-update-error",
+      });
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await adminLogout();
+      toast.success("Logged out successfully", { id: "logout-success" });
+      navigate("/admin/login");
+    } catch (err) {
+      console.error("Error logging out:", err);
+      toast.error("Failed to logout", { id: "logout-error" });
     }
   };
 
@@ -159,6 +170,33 @@ function AdminDashboard() {
 
   return (
     <div className="space-y-8">
+      {/* Admin Header with Logout */}
+      <div
+        className={`${
+          isDark
+            ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 shadow-[0_0_30px_rgba(59,130,246,0.1)]"
+            : "bg-white shadow-[0_0_30px_rgba(59,130,246,0.05)]"
+        } p-4 rounded-lg shadow-lg flex justify-between items-center mb-8`}
+      >
+        <h1
+          className={`text-2xl font-bold ${
+            isDark ? "text-blue-400" : "text-blue-600"
+          }`}
+        >
+          Admin Dashboard
+        </h1>
+        <button
+          onClick={handleLogout}
+          className={`px-4 py-2 rounded-md transition-all duration-300 hover:scale-105 ${
+            isDark
+              ? "bg-red-600 hover:bg-red-700 text-white"
+              : "bg-red-500 hover:bg-red-600 text-white"
+          }`}
+        >
+          Logout
+        </button>
+      </div>
+
       {/* Two Column Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left Column - Add New Coupon Form */}
@@ -461,7 +499,12 @@ function AdminDashboard() {
                         isDark ? "text-white" : "text-gray-900"
                       }`}
                     >
-                      {coupon.description}
+                      <div
+                        className="max-w-[200px] truncate"
+                        title={coupon.description}
+                      >
+                        {coupon.description}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <span

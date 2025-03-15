@@ -17,7 +17,22 @@ function AppContent() {
       <div
         className={`min-h-screen ${isDark ? "bg-gray-900" : "bg-[#EAEFF1]"}`}
       >
-        <Toaster position="top-right" />
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            // Prevent duplicate toasts
+            id: (t) => t.message,
+            // Custom styling
+            style: {
+              background: isDark ? "#1f2937" : "#ffffff",
+              color: isDark ? "#ffffff" : "#000000",
+            },
+            // Prevent multiple toasts stacking
+            multiple: false,
+            // Duration for each toast
+            duration: 3000,
+          }}
+        />
         <Navbar />
         <main className="container mx-auto px-4 py-8 max-w-7xl">
           <Routes>

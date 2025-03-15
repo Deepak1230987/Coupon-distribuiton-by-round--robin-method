@@ -39,7 +39,9 @@ function ClaimPage() {
       setAvailableCoupons(response.data.availableCoupons);
     } catch (error) {
       console.error("Error fetching available coupons:", error);
-      toast.error("Failed to fetch available coupons");
+      toast.error("Failed to fetch available coupons", {
+        id: "fetch-available-error",
+      });
     } finally {
       setLoading(false);
     }

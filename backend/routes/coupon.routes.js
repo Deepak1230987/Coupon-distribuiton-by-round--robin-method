@@ -152,7 +152,7 @@ router.post('/claim', getClientInfo, checkCooldown, async (req, res) => {
         console.error('Claim error:', error);
         res.status(500).json({
             message: 'Failed to claim coupon',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            error: process.env.NODE_ENV === 'production' ? error.message : undefined
         });
     }
 });

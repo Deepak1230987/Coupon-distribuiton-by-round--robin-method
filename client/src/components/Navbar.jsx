@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
-
+import { Moon, Sun } from "lucide-react";
 function Navbar() {
   const { isDark, toggleTheme } = useTheme();
 
@@ -27,21 +27,21 @@ function Navbar() {
           <div className="flex items-center space-x-4">
             <button
               onClick={toggleTheme}
-              className={`p-2 rounded-full transition-all duration-300 hover:scale-110 ${
+              className={`p-2 rounded-xl transition-all duration-300 hover:scale-110 border border-blue-500  ${
                 isDark
-                  ? "bg-gray-800 text-yellow-400 hover:bg-gray-700 hover:shadow-[0_0_15px_rgba(234,179,8,0.3)]"
-                  : "bg-blue-50 text-blue-600 hover:bg-blue-100 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+                  ? "bg-gray-800 text-yellow-300 hover:bg-gray-800 "
+                  : " text-blue-500  "
               }`}
               aria-label="Toggle theme"
             >
-              {isDark ? "☀️" : "🌙"}
+              {isDark ? <Sun /> : <Moon />}
             </button>
             <Link
               to="/admin/login"
               className={`px-4 py-2 rounded-md transition-all duration-300 hover:scale-105 ${
                 isDark
-                  ? "text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 hover:shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-gray-700"
-                  : "text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] border border-blue-200"
+                  ? "text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700  border border-blue-500"
+                  : "text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-50  border border-blue-200"
               }`}
             >
               Admin Login

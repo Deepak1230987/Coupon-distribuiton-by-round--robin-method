@@ -15,19 +15,23 @@ function ClaimCoupon({ onClaim, sessionId }) {
 
       if (response.data.coupon) {
         setClaimedCoupon(response.data.coupon);
-        toast.success("Successfully claimed coupon!");
+        toast.success("Successfully claimed coupon!", { id: "claim-success" });
         if (onClaim) onClaim();
       }
     } catch (error) {
       console.error("Error claiming coupon:", error);
       const errorMessage =
         error.response?.data?.message || "Failed to claim coupon";
-      toast.error(errorMessage);
+      toast.error(errorMessage, { id: "claim-error" });
 
       if (error.response?.status === 429) {
-        toast.error("Please wait 24 hours before claiming another coupon");
+        toast.error("Please wait 24 hours before claiming another coupon", {
+          id: "cooldown-error",
+        });
       } else if (error.response?.status === 404) {
-        toast.error("No coupons available at the moment");
+        toast.error("No coupons available at the moment", {
+          id: "no-coupons-error",
+        });
       }
     } finally {
       setLoading(false);
