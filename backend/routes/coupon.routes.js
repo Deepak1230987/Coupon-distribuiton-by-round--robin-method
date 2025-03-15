@@ -23,33 +23,39 @@ const checkCooldown = async (req, res, next) => {
     try {
         const cooldownPeriod = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
-        // Only check for successful claims
-        const recentClaim = await Coupon.findOne({
-            'claimedBy': {
-                $elemMatch: {
-                    ip: req.clientIp,
-                    claimedAt: { $gt: new Date(Date.now() - cooldownPeriod) }
-                }
-            },
-            isUsed: true // Only consider successful claims
+        // Find any successful claims by this IP in the last 24 hours
+        const recentClaims = await Coupon.find({
+            'claimedBy.ip': req.clientIp,
+            'claimedBy.claimedAt': { $gt: new Date(Date.now() - cooldownPeriod) }
         });
 
-        if (recentClaim) {
-            // Find the most recent claim by this IP
-            const lastClaim = recentClaim.claimedBy
-                .filter(claim => claim.ip === req.clientIp)
-                .sort((a, b) => b.claimedAt - a.claimedAt)[0];
+        // If no claims found, allow the request
+        if (!recentClaims || recentClaims.length === 0) {
+            console.log('No recent claims found for IP:', req.clientIp);
+            return next();
+        }
 
-            const timeLeft = new Date(lastClaim.claimedAt.getTime() + cooldownPeriod) - Date.now();
-            const hoursLeft = Math.ceil(timeLeft / (1000 * 60 * 60));
+        // Get the most recent claim time for this IP across all coupons
+        let mostRecentClaimTime = new Date(0);
+        recentClaims.forEach(coupon => {
+            coupon.claimedBy.forEach(claim => {
+                if (claim.ip === req.clientIp && claim.claimedAt > mostRecentClaimTime) {
+                    mostRecentClaimTime = claim.claimedAt;
+                }
+            });
+        });
 
+        const timeLeft = new Date(mostRecentClaimTime.getTime() + cooldownPeriod) - Date.now();
+        const hoursLeft = Math.ceil(timeLeft / (1000 * 60 * 60));
+
+        if (timeLeft > 0) {
             console.log('Cooldown active for IP:', req.clientIp, 'Hours left:', hoursLeft);
             return res.status(429).json({
                 message: `Please wait ${hoursLeft} hours before claiming another coupon.`
             });
         }
 
-        console.log('No cooldown for IP:', req.clientIp);
+        console.log('Cooldown expired for IP:', req.clientIp);
         next();
     } catch (error) {
         console.error('Cooldown check error:', error);
@@ -64,14 +70,17 @@ router.post('/claim', getClientInfo, checkCooldown, async (req, res) => {
         const coupon = await Coupon.findOne({
             isActive: true,
             isUsed: false,
-            expiryDate: { $gt: new Date() },
-            // Check if this IP or session has already claimed this specific coupon
-            'claimedBy.ip': { $ne: req.clientIp },
-            'claimedBy.sessionId': { $ne: req.sessionId }
+            expiryDate: { $gt: new Date() }
         }).sort({ lastClaimAt: 1, createdAt: 1 }); // Sort by last claim time and creation time
 
         if (!coupon) {
             return res.status(404).json({ message: 'No available coupons' });
+        }
+
+        // Check if this IP has claimed this specific coupon
+        const hasClaimedThis = coupon.claimedBy.some(claim => claim.ip === req.clientIp);
+        if (hasClaimedThis) {
+            return res.status(400).json({ message: 'You have already claimed this coupon' });
         }
 
         // Update coupon with claim information
