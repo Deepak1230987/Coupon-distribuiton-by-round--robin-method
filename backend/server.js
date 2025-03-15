@@ -7,13 +7,10 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 
 const app = express();
-
-// CORS Configuration
-// const allowedOrigins = [
-//     process.env.CLIENT_URL,
-//     process.env.LOCAL_CLIENT_URL || "http://localhost:5173"
-// ].filter(Boolean); // Remove undefined values
-const allowedOrigins =[process.env.CLIENT_URL]
+const allowedOrigins = [
+    process.env.CLIENT_URL,
+    process.env.LOCAL_CLIENT_URL, // ✅ Now includes localhost
+].filter(Boolean);
 
 app.use(
     cors({
@@ -21,6 +18,7 @@ app.use(
             if (!origin || allowedOrigins.includes(origin)) {
                 callback(null, true);
             } else {
+                console.log("Blocked by CORS:", origin);
                 callback(new Error("CORS not allowed"));
             }
         },
