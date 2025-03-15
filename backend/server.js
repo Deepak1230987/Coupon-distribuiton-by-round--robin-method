@@ -9,11 +9,11 @@ const rateLimit = require('express-rate-limit');
 const app = express();
 
 // CORS Configuration
-const allowedOrigins = [
-    process.env.CLIENT_URL, 
-    process.env.LOCAL_CLIENT_URL || "http://localhost:5173"
-  ].filter(Boolean); // Remove undefined values
-  
+// const allowedOrigins = [
+//     process.env.CLIENT_URL,
+//     process.env.LOCAL_CLIENT_URL || "http://localhost:5173"
+// ].filter(Boolean); // Remove undefined values
+const allowedOrigins =[process.env.CLIENT_URL];
 
 app.use(
     cors({
@@ -49,6 +49,10 @@ const limiter = rateLimit({
 app.use('/api/coupons/claim', limiter);
 
 // Routes
+app.get("/", (req, res) => {
+    res.send("Backend is running 🚀");
+});
+
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/coupons', require('./routes/coupon.routes'));
 app.use('/api/admin', require('./routes/admin.routes'));
