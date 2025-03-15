@@ -392,78 +392,80 @@ function AdminDashboard() {
             >
               Recent Claims
             </h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead
-                  className={`${
-                    isDark ? "bg-gray-800" : "bg-blue-50"
-                  } transition-colors duration-300`}
-                >
-                  <tr>
-                    <th
-                      className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                        isDark ? "text-gray-300" : "text-blue-700"
-                      }`}
-                    >
-                      Coupon Code
-                    </th>
-                    <th
-                      className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                        isDark ? "text-gray-300" : "text-blue-700"
-                      }`}
-                    >
-                      IP Address
-                    </th>
-                    <th
-                      className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                        isDark ? "text-gray-300" : "text-blue-700"
-                      }`}
-                    >
-                      Claimed At
-                    </th>
-                  </tr>
-                </thead>
-                <tbody
-                  className={`${
-                    isDark
-                      ? "bg-gray-900 divide-gray-800"
-                      : "bg-white divide-blue-100"
-                  } transition-colors duration-300`}
-                >
-                  {claims.slice(0, 5).map((claim) =>
-                    claim.claimedBy.map((claimInfo, index) => (
-                      <tr
-                        key={`${claim._id}-${index}`}
-                        className={`transition-all duration-300 ease-in-out ${
-                          isDark ? "hover:bg-gray-800" : "hover:bg-blue-50/50"
+            <div className="overflow-x-auto h-[300px]">
+              <div className="overflow-y-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead
+                    className={`${
+                      isDark ? "bg-gray-800" : "bg-blue-50"
+                    } transition-colors duration-300`}
+                  >
+                    <tr>
+                      <th
+                        className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                          isDark ? "text-gray-300" : "text-blue-700"
                         }`}
                       >
-                        <td
-                          className={`px-6 py-4 whitespace-nowrap ${
-                            isDark ? "text-white" : "text-gray-900"
+                        Coupon Code
+                      </th>
+                      <th
+                        className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                          isDark ? "text-gray-300" : "text-blue-700"
+                        }`}
+                      >
+                        IP Address
+                      </th>
+                      <th
+                        className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                          isDark ? "text-gray-300" : "text-blue-700"
+                        }`}
+                      >
+                        Claimed At
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    className={`${
+                      isDark
+                        ? "bg-gray-900 divide-gray-800"
+                        : "bg-white divide-blue-100"
+                    } transition-colors duration-300`}
+                  >
+                    {claims.slice(0, 5).map((claim) =>
+                      claim.claimedBy.map((claimInfo, index) => (
+                        <tr
+                          key={`${claim._id}-${index}`}
+                          className={`transition-all duration-300 ease-in-out ${
+                            isDark ? "hover:bg-gray-800" : "hover:bg-blue-50/50"
                           }`}
                         >
-                          {claim.code}
-                        </td>
-                        <td
-                          className={`px-6 py-4 whitespace-nowrap ${
-                            isDark ? "text-white" : "text-gray-900"
-                          }`}
-                        >
-                          {claimInfo.ip}
-                        </td>
-                        <td
-                          className={`px-6 py-4 whitespace-nowrap ${
-                            isDark ? "text-white" : "text-gray-900"
-                          }`}
-                        >
-                          {new Date(claimInfo.claimedAt).toLocaleString()}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                          <td
+                            className={`px-6 py-4 whitespace-nowrap ${
+                              isDark ? "text-white" : "text-gray-900"
+                            }`}
+                          >
+                            {claim.code}
+                          </td>
+                          <td
+                            className={`px-6 py-4 whitespace-nowrap ${
+                              isDark ? "text-white" : "text-gray-900"
+                            }`}
+                          >
+                            {claimInfo.ip}
+                          </td>
+                          <td
+                            className={`px-6 py-4 whitespace-nowrap ${
+                              isDark ? "text-white" : "text-gray-900"
+                            }`}
+                          >
+                            {new Date(claimInfo.claimedAt).toLocaleString()}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -495,143 +497,145 @@ function AdminDashboard() {
           >
             Available Coupons
           </h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead
-                className={`${
-                  isDark ? "bg-gray-800" : "bg-blue-50"
-                } transition-colors duration-300`}
-              >
-                <tr>
-                  <th
-                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                      isDark ? "text-gray-300" : "text-blue-700"
-                    }`}
-                  >
-                    Code
-                  </th>
-                  <th
-                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                      isDark ? "text-gray-300" : "text-blue-700"
-                    }`}
-                  >
-                    Description
-                  </th>
-                  <th
-                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                      isDark ? "text-gray-300" : "text-blue-700"
-                    }`}
-                  >
-                    Status
-                  </th>
-                  <th
-                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                      isDark ? "text-gray-300" : "text-blue-700"
-                    }`}
-                  >
-                    Expiry Date
-                  </th>
-                  <th
-                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                      isDark ? "text-gray-300" : "text-blue-700"
-                    }`}
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody
-                className={`${
-                  isDark
-                    ? "bg-gray-900 divide-gray-800"
-                    : "bg-white divide-blue-100"
-                } transition-colors duration-300`}
-              >
-                {coupons.map((coupon) => (
-                  <tr
-                    key={coupon._id}
-                    className={`transition-all duration-300 ease-in-out ${
-                      isDark ? "hover:bg-gray-800" : "hover:bg-cyan-100"
-                    }`}
-                  >
-                    <td
-                      className={`px-6 py-4 whitespace-nowrap ${
-                        isDark ? "text-white" : "text-gray-900"
+          <div className="overflow-x-auto h-[400px]">
+            <div className="overflow-y-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead
+                  className={`${
+                    isDark ? "bg-gray-800" : "bg-blue-50"
+                  } transition-colors duration-300`}
+                >
+                  <tr>
+                    <th
+                      className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                        isDark ? "text-gray-300" : "text-blue-700"
                       }`}
                     >
-                      {coupon.code}
-                    </td>
-                    <td
-                      className={`px-6 py-4 ${
-                        isDark ? "text-white" : "text-gray-900"
+                      Code
+                    </th>
+                    <th
+                      className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                        isDark ? "text-gray-300" : "text-blue-700"
                       }`}
                     >
-                      <div
-                        className="max-w-[200px] truncate"
-                        title={coupon.description}
-                      >
-                        {coupon.description}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-3 py-1 inline-flex items-center gap-1.5 text-xs font-medium rounded-full transition-all duration-300 ease-in-out ${
-                          isDark
-                            ? "dark:bg-green-900/30 dark:text-green-400 dark:border-emerald-800/50"
-                            : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        } ${
-                          coupon.isActive
-                            ? ""
-                            : isDark
-                            ? "dark:bg-red-900/30 dark:text-red-400 dark:border-rose-800/50"
-                            : "bg-rose-50 text-rose-700 border border-rose-200"
-                        }`}
-                      >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
-                            coupon.isActive
-                              ? "bg-emerald-500 dark:bg-emerald-400"
-                              : "bg-rose-500 dark:bg-rose-400"
-                          }`}
-                        ></span>
-                        {coupon.isActive ? "Active" : "Inactive"}
-                      </span>
-                    </td>
-                    <td
-                      className={`px-6 py-4 whitespace-nowrap ${
-                        isDark ? "text-white" : "text-gray-900"
+                      Description
+                    </th>
+                    <th
+                      className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                        isDark ? "text-gray-300" : "text-blue-700"
                       }`}
                     >
-                      {new Date(coupon.expiryDate).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap space-x-2">
-                      <button
-                        onClick={() => handleEditClick(coupon)}
-                        className={`px-3 py-1 rounded-md text-white transition-all duration-300 ease-in-out hover:scale-105 active:scale-95 ${
-                          isDark
-                            ? "bg-blue-600 hover:bg-blue-700"
-                            : "bg-blue-500 hover:bg-blue-600"
-                        }`}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() =>
-                          toggleCouponStatus(coupon._id, coupon.isActive)
-                        }
-                        className={`px-3 py-1 rounded-md text-white transition-all duration-300 ease-in-out hover:scale-105 active:scale-95 ${
-                          coupon.isActive
-                            ? "bg-rose-500 hover:bg-rose-700 hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]"
-                            : "bg-green-500 hover:bg-green-600 hover:shadow-[0_0_15px_rgba(34,197,94,0.3)]"
-                        }`}
-                      >
-                        {coupon.isActive ? "Deactivate" : "Activate"}
-                      </button>
-                    </td>
+                      Status
+                    </th>
+                    <th
+                      className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                        isDark ? "text-gray-300" : "text-blue-700"
+                      }`}
+                    >
+                      Expiry Date
+                    </th>
+                    <th
+                      className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                        isDark ? "text-gray-300" : "text-blue-700"
+                      }`}
+                    >
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody
+                  className={`${
+                    isDark
+                      ? "bg-gray-900 divide-gray-800"
+                      : "bg-white divide-blue-100"
+                  } transition-colors duration-300`}
+                >
+                  {coupons.map((coupon) => (
+                    <tr
+                      key={coupon._id}
+                      className={`transition-all duration-300 ease-in-out ${
+                        isDark ? "hover:bg-gray-800" : "hover:bg-cyan-100"
+                      }`}
+                    >
+                      <td
+                        className={`px-6 py-4 whitespace-nowrap ${
+                          isDark ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        {coupon.code}
+                      </td>
+                      <td
+                        className={`px-6 py-4 ${
+                          isDark ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        <div
+                          className="max-w-[200px] truncate"
+                          title={coupon.description}
+                        >
+                          {coupon.description}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`px-3 py-1 inline-flex items-center gap-1.5 text-xs font-medium rounded-full transition-all duration-300 ease-in-out ${
+                            isDark
+                              ? "dark:bg-green-900/30 dark:text-green-400 dark:border-emerald-800/50"
+                              : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          } ${
+                            coupon.isActive
+                              ? ""
+                              : isDark
+                              ? "dark:bg-red-900/30 dark:text-red-400 dark:border-rose-800/50"
+                              : "bg-rose-50 text-rose-700 border border-rose-200"
+                          }`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
+                              coupon.isActive
+                                ? "bg-emerald-500 dark:bg-emerald-400"
+                                : "bg-rose-500 dark:bg-rose-400"
+                            }`}
+                          ></span>
+                          {coupon.isActive ? "Active" : "Inactive"}
+                        </span>
+                      </td>
+                      <td
+                        className={`px-6 py-4 whitespace-nowrap ${
+                          isDark ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        {new Date(coupon.expiryDate).toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap space-x-2">
+                        <button
+                          onClick={() => handleEditClick(coupon)}
+                          className={`px-3 py-1 rounded-md text-white transition-all duration-300 ease-in-out hover:scale-105 active:scale-95 ${
+                            isDark
+                              ? "bg-blue-600 hover:bg-blue-700"
+                              : "bg-blue-500 hover:bg-blue-600"
+                          }`}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() =>
+                            toggleCouponStatus(coupon._id, coupon.isActive)
+                          }
+                          className={`px-3 py-1 rounded-md text-white transition-all duration-300 ease-in-out hover:scale-105 active:scale-95 ${
+                            coupon.isActive
+                              ? "bg-rose-500 hover:bg-rose-700 hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                              : "bg-green-500 hover:bg-green-600 hover:shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+                          }`}
+                        >
+                          {coupon.isActive ? "Deactivate" : "Activate"}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
