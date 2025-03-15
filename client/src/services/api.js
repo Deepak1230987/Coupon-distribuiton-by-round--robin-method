@@ -12,28 +12,29 @@ const api = axios.create({
 });
 
 // Auth endpoints
+// Auth endpoints
 export const adminSignup = (username, password, email) =>
-  api.post("/auth/signup", { username, password, email });
+  api.post("/api/auth/signup", { username, password, email });
 
 export const adminLogin = (username, password) =>
-  api.post("/auth/login", { username, password });
+  api.post("/api/auth/login", { username, password });
 
-export const adminLogout = () => api.post("/auth/logout");
+export const adminLogout = () => api.post("/api/auth/logout");  // ✅ Fix this
 
 // Admin endpoints
 export const addCoupon = (couponData) =>
-  api.post("/admin/coupons", couponData);
+  api.post("/api/admin/coupons", couponData);
 
-export const getCoupons = () => api.get("/admin/coupons");
+export const getCoupons = () => api.get("/api/admin/coupons");
 
 export const updateCoupon = (id, data) =>
-  api.put(`/admin/coupons/${id}`, data);
+  api.put(`/api/admin/coupons/${id}`, data);
 
-export const getClaims = () => api.get("/admin/claims");
+export const getClaims = () => api.get("/api/admin/claims");
 
 // Public endpoints
 export const getAvailableCoupons = (sessionId) =>
-  api.get("/coupons/available", {
+  api.get("/api/coupons/available", {  // ✅ Fix this
     headers: {
       "X-Session-ID": sessionId,
     },
@@ -41,7 +42,7 @@ export const getAvailableCoupons = (sessionId) =>
 
 export const claimCoupon = (sessionId) =>
   api.post(
-    "/coupons/claim",
+    "/api/coupons/claim",  // ✅ Fix this
     {},
     {
       headers: {
@@ -49,5 +50,6 @@ export const claimCoupon = (sessionId) =>
       },
     }
   );
+
 
 export default api;
