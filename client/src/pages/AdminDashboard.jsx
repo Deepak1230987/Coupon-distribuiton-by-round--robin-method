@@ -392,15 +392,15 @@ function AdminDashboard() {
             >
               Recent Claims
             </h2>
-            <div className="overflow-x-auto h-[300px]">
+            <div className="table-container h-[300px]">
               <div
-                className={`overflow-y-auto modern-scrollbar ${
+                className={`table-scroll modern-scrollbar ${
                   isDark ? "dark" : ""
                 }`}
               >
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead
-                    className={`${
+                    className={`sticky-header ${
                       isDark ? "bg-gray-800" : "bg-blue-50"
                     } transition-colors duration-300`}
                   >
@@ -501,15 +501,15 @@ function AdminDashboard() {
           >
             Available Coupons
           </h2>
-          <div className="overflow-x-auto h-[650px]">
+          <div className="table-container h-[650px]">
             <div
-              className={`overflow-y-auto modern-scrollbar ${
+              className={`table-scroll modern-scrollbar ${
                 isDark ? "dark" : ""
               }`}
             >
               <table className="min-w-full divide-y divide-gray-200">
                 <thead
-                  className={`${
+                  className={`sticky-header ${
                     isDark ? "bg-gray-800" : "bg-blue-50"
                   } transition-colors duration-300`}
                 >
@@ -752,7 +752,72 @@ function AdminDashboard() {
         </div>
       )}
 
-  
+      <style>{`
+        @keyframes shimmer {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-shimmer {
+          animation: shimmer 3s ease infinite;
+        }
+
+        /* Modern Scrollbar Styles */
+        .modern-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #3b82f6 transparent;
+        }
+
+        .modern-scrollbar.dark {
+          scrollbar-color: #475569 transparent;
+        }
+
+        .modern-scrollbar::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+
+        .modern-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+          margin: 4px;
+        }
+
+        .modern-scrollbar::-webkit-scrollbar-thumb {
+          background: #3b82f6;
+          border-radius: 8px;
+        }
+
+        .modern-scrollbar.dark::-webkit-scrollbar-thumb {
+          background: #475569;
+        }
+
+        .modern-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #2563eb;
+        }
+
+        .modern-scrollbar.dark::-webkit-scrollbar-thumb:hover {
+          background: #64748b;
+        }
+
+        /* Table Container Styles */
+        .table-container {
+          position: relative;
+          overflow: hidden;
+        }
+
+        .table-scroll {
+          overflow: auto;
+          max-height: 100%;
+          position: relative;
+        }
+
+        /* Sticky Header */
+        .sticky-header {
+          position: sticky;
+          top: 0;
+          z-index: 10;
+        }
+      `}</style>
     </div>
   );
 }
