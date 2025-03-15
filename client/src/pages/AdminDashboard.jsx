@@ -1,7 +1,12 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import toast from "react-hot-toast";
 import { useTheme } from "../context/ThemeContext";
+import {
+  addCoupon,
+  getCoupons,
+  getClaims,
+  updateCoupon,
+} from "../services/api";
 
 function AdminDashboard() {
   const [coupons, setCoupons] = useState([]);
@@ -21,12 +26,7 @@ function AdminDashboard() {
 
   const fetchCoupons = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:5000/api/admin/coupons",
-        {
-          withCredentials: true,
-        }
-      );
+      const response = await getCoupons();
       setCoupons(response.data);
     } catch (err) {
       console.error("Error fetching coupons:", err);
@@ -36,12 +36,7 @@ function AdminDashboard() {
 
   const fetchClaims = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:5000/api/admin/claims",
-        {
-          withCredentials: true,
-        }
-      );
+      const response = await getClaims();
       setClaims(response.data);
     } catch (err) {
       console.error("Error fetching claims:", err);
@@ -110,17 +105,7 @@ function AdminDashboard() {
 
       console.log("Attempting to create coupon with data:", couponData);
 
-      const response = await axios.post(
-        "http://localhost:5000/api/admin/coupons",
-        couponData,
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
+      const response = await addCoupon(couponData);
       console.log("Server response:", response.data);
       toast.success("Coupon added successfully");
       setNewCoupon({ code: "", description: "", expiryDate: "" });
@@ -155,11 +140,7 @@ function AdminDashboard() {
 
   const toggleCouponStatus = async (id, currentStatus) => {
     try {
-      await axios.put(
-        `http://localhost:5000/api/admin/coupons/${id}`,
-        { isActive: !currentStatus },
-        { withCredentials: true }
-      );
+      await updateCoupon(id, { isActive: !currentStatus });
       toast.success("Coupon status updated");
       fetchCoupons();
     } catch (err) {

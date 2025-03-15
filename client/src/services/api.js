@@ -9,9 +9,8 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-});
+})
 
-// Auth endpoints
 // Auth endpoints
 export const adminSignup = (username, password, email) =>
   api.post("/api/auth/signup", { username, password, email });
@@ -53,3 +52,4 @@ export const claimCoupon = (sessionId) =>
 
 
 export default api;
+
