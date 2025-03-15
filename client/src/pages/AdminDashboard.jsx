@@ -393,7 +393,11 @@ function AdminDashboard() {
               Recent Claims
             </h2>
             <div className="overflow-x-auto h-[300px]">
-              <div className="overflow-y-auto">
+              <div
+                className={`overflow-y-auto modern-scrollbar ${
+                  isDark ? "dark" : ""
+                }`}
+              >
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead
                     className={`${
@@ -497,8 +501,12 @@ function AdminDashboard() {
           >
             Available Coupons
           </h2>
-          <div className="overflow-x-auto h-[400px]">
-            <div className="overflow-y-auto">
+          <div className="overflow-x-auto h-[650px]">
+            <div
+              className={`overflow-y-auto modern-scrollbar ${
+                isDark ? "dark" : ""
+              }`}
+            >
               <table className="min-w-full divide-y divide-gray-200">
                 <thead
                   className={`${
@@ -758,6 +766,49 @@ function AdminDashboard() {
         }
         .animate-shimmer {
           animation: shimmer 3s ease infinite;
+        }
+
+        /* Modern Scrollbar Styles */
+        .modern-scrollbar::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+
+        .modern-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+          border-radius: 10px;
+        }
+
+        .modern-scrollbar.dark::-webkit-scrollbar-track {
+          background: rgba(17, 24, 39, 0.7);
+        }
+
+        .modern-scrollbar::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 10px;
+          transition: all 0.3s ease;
+        }
+
+        .modern-scrollbar.dark::-webkit-scrollbar-thumb {
+          background: #475569;
+        }
+
+        .modern-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+
+        .modern-scrollbar.dark::-webkit-scrollbar-thumb:hover {
+          background: #64748b;
+        }
+
+        /* Firefox */
+        .modern-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #cbd5e1 transparent;
+        }
+
+        .modern-scrollbar.dark {
+          scrollbar-color: #475569 rgba(17, 24, 39, 0.7);
         }
       `}</style>
     </div>
