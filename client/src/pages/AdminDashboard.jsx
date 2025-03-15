@@ -752,65 +752,7 @@ function AdminDashboard() {
         </div>
       )}
 
-      <style>{`
-        @keyframes shimmer {
-          0% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-          100% {
-            background-position: 0% 50%;
-          }
-        }
-        .animate-shimmer {
-          animation: shimmer 3s ease infinite;
-        }
-
-        /* Modern Scrollbar Styles */
-        .modern-scrollbar::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-
-        .modern-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-          border-radius: 10px;
-        }
-
-        .modern-scrollbar.dark::-webkit-scrollbar-track {
-          background: rgba(17, 24, 39, 0.7);
-        }
-
-        .modern-scrollbar::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 10px;
-          transition: all 0.3s ease;
-        }
-
-        .modern-scrollbar.dark::-webkit-scrollbar-thumb {
-          background: #475569;
-        }
-
-        .modern-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
-        }
-
-        .modern-scrollbar.dark::-webkit-scrollbar-thumb:hover {
-          background: #64748b;
-        }
-
-        /* Firefox */
-        .modern-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: #cbd5e1 transparent;
-        }
-
-        .modern-scrollbar.dark {
-          scrollbar-color: #475569 rgba(17, 24, 39, 0.7);
-        }
-      `}</style>
+  
     </div>
   );
 }
