@@ -13,7 +13,7 @@ const app = express();
 //     process.env.CLIENT_URL,
 //     process.env.LOCAL_CLIENT_URL || "http://localhost:5173"
 // ].filter(Boolean); // Remove undefined values
-const allowedOrigins =[process.env.CLIENT_URL];
+const allowedOrigins =[process.env.CLIENT_URL]
 
 app.use(
     cors({
@@ -46,16 +46,16 @@ const limiter = rateLimit({
 });
 
 // Apply rate limiting to coupon claim route
-app.use('/coupons/claim', limiter);
+app.use('/api/coupons/claim', limiter);
 
 // Routes
 app.get("/", (req, res) => {
     res.send("Backend is running 🚀");
 });
 
-app.use('/auth', require('./routes/auth.routes'));
-app.use('/coupons', require('./routes/coupon.routes'));
-app.use('/admin', require('./routes/admin.routes'));
+app.use('/api/auth', require('./routes/auth.routes'));
+app.use('/api/coupons', require('./routes/coupon.routes'));
+app.use('/api/admin', require('./routes/admin.routes'));
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI)
