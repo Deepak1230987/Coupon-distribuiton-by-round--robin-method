@@ -45,10 +45,15 @@ router.get('/coupons', verifyToken, async (req, res) => {
 });
 
 // Get next available coupon
-router.get('/coupons/next', async (req, res) => {
+router.get('/coupons/next', verifyToken, async (req, res) => {
     try {
         const ip = req.ip;
         const sessionId = req.cookies.sessionId;
+
+        // Validate admin access
+        if (!req.adminId) {
+            return res.status(401).json({ message: 'Admin access required' });
+        }
 
         // Check cooldown period (24 hours)
         const cooldownPeriod = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
@@ -80,6 +85,7 @@ router.get('/coupons/next', async (req, res) => {
             return res.status(404).json({ message: 'No coupons available' });
         }
 
+        console.log('Next coupon found:', nextCoupon.code, 'for admin:', req.adminId);
         res.json({ code: nextCoupon.code });
     } catch (error) {
         console.error('Error getting next coupon:', error);

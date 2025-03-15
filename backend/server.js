@@ -39,12 +39,31 @@ app.options("*", cors());
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 24 * 60 * 60 * 1000, // 24 hours
-    max: 3, // Limit each IP to 3 requests per windowMs
-    message: 'Too many coupon claims from this IP, please try again after 24 hours'
+    max: 5, // Increased from 3 to 5 requests per windowMs
+    message: 'Too many coupon claim attempts from this IP, please try again after 24 hours',
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    handler: (req, res) => {
+        console.log('Rate limit exceeded for IP:', req.ip);
+        res.status(429).json({
+            message: 'Too many coupon claim attempts. Please try again later.',
+            retryAfter: Math.ceil(req.rateLimit.resetTime / (1000 * 60 * 60)) // hours until reset
+        });
+    }
 });
 
-// Apply rate limiting to coupon claim route
+// Admin login rate limiter
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // Limit each IP to 5 login attempts per windowMs
+    message: 'Too many login attempts, please try again after 15 minutes',
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+// Apply rate limiting to routes
 app.use('/api/coupons/claim', limiter);
+app.use('/api/auth/login', loginLimiter);
 
 // Routes
 app.get("/", (req, res) => {
