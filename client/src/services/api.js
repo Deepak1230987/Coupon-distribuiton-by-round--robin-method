@@ -13,6 +13,16 @@ const api = axios.create({
   timeout: 15000,
 });
 
+// Generate a session ID if not exists
+const getSessionId = () => {
+  let sessionId = localStorage.getItem('sessionId');
+  if (!sessionId) {
+    sessionId = 'session_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('sessionId', sessionId);
+  }
+  return sessionId;
+};
+
 // Add request interceptor for debugging
 api.interceptors.request.use(
   (config) => {
@@ -175,20 +185,24 @@ export const getAvailableCoupons = async (sessionId) => {
   }
 };
 
-export const claimCoupon = async (sessionId) => {
+export const claimCoupon = async () => {
   try {
+    const sessionId = getSessionId();
     const response = await api.post(
       "/api/coupons/claim",
       {},
       {
         headers: {
-          "X-Session-ID": sessionId,
-        },
+          "X-Session-ID": sessionId
+        }
       }
     );
     return response;
   } catch (error) {
     console.error('Claim Coupon Error:', error.message);
+    if (error.response?.status === 500) {
+      throw new Error('Server error while claiming coupon. Please try again later.');
+    }
     throw error;
   }
 };

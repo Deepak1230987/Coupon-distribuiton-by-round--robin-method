@@ -3,19 +3,28 @@ const Coupon = require('../models/Coupon');
 
 // Middleware to get client IP and session
 const getClientInfo = (req, res, next) => {
-    // Get real IP address even behind proxy
-    req.clientIp = req.headers['x-forwarded-for']?.split(',')[0] ||
-        req.ip ||
-        req.connection.remoteAddress;
+    try {
+        // Get real IP address even behind proxy
+        req.clientIp = req.headers['x-forwarded-for']?.split(',')[0] ||
+            req.ip ||
+            req.connection.remoteAddress;
 
-    // Clean IPv6 localhost to IPv4
-    if (req.clientIp === '::1' || req.clientIp === '::ffff:127.0.0.1') {
-        req.clientIp = '127.0.0.1';
+        // Clean IPv6 localhost to IPv4
+        if (req.clientIp === '::1' || req.clientIp === '::ffff:127.0.0.1') {
+            req.clientIp = '127.0.0.1';
+        }
+
+        req.sessionId = req.cookies.sessionId || req.headers['x-session-id'];
+        console.log('Client Info:', {
+            ip: req.clientIp,
+            sessionId: req.sessionId,
+            headers: req.headers
+        });
+        next();
+    } catch (error) {
+        console.error('Error in getClientInfo middleware:', error);
+        res.status(500).json({ message: 'Error processing request' });
     }
-
-    req.sessionId = req.cookies.sessionId || req.headers['x-session-id'];
-    console.log('Client IP:', req.clientIp, 'Session:', req.sessionId);
-    next();
 };
 
 // Middleware to check cooldown period
@@ -66,20 +75,27 @@ const checkCooldown = async (req, res, next) => {
 // Claim a coupon (Sequential distribution)
 router.post('/claim', getClientInfo, checkCooldown, async (req, res) => {
     try {
+        console.log('Starting coupon claim process for:', {
+            ip: req.clientIp,
+            sessionId: req.sessionId
+        });
+
         // Find the next available coupon in sequence
         const coupon = await Coupon.findOne({
             isActive: true,
             isUsed: false,
             expiryDate: { $gt: new Date() }
-        }).sort({ lastClaimAt: 1, createdAt: 1 }); // Sort by last claim time and creation time
+        }).sort({ lastClaimAt: 1, createdAt: 1 });
 
         if (!coupon) {
+            console.log('No available coupons found');
             return res.status(404).json({ message: 'No available coupons' });
         }
 
         // Check if this IP has claimed this specific coupon
         const hasClaimedThis = coupon.claimedBy.some(claim => claim.ip === req.clientIp);
         if (hasClaimedThis) {
+            console.log('IP has already claimed this coupon:', req.clientIp);
             return res.status(400).json({ message: 'You have already claimed this coupon' });
         }
 
@@ -92,10 +108,17 @@ router.post('/claim', getClientInfo, checkCooldown, async (req, res) => {
 
         coupon.isUsed = true;
         coupon.lastClaimAt = new Date();
+
+        console.log('Saving coupon claim:', {
+            couponId: coupon._id,
+            code: coupon.code,
+            ip: req.clientIp
+        });
+
         await coupon.save();
 
         // Set session cookie if not exists
-        if (!req.cookies.sessionId) {
+        if (!req.cookies.sessionId && req.sessionId) {
             res.cookie('sessionId', req.sessionId, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
@@ -120,7 +143,10 @@ router.post('/claim', getClientInfo, checkCooldown, async (req, res) => {
         });
     } catch (error) {
         console.error('Claim error:', error);
-        res.status(500).json({ message: 'Failed to claim coupon' });
+        res.status(500).json({
+            message: 'Failed to claim coupon',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 });
 
