@@ -1,0 +1,558 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useTheme } from "../context/ThemeContext";
+
+function AdminDashboard() {
+  const [coupons, setCoupons] = useState([]);
+  const [claims, setClaims] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [newCoupon, setNewCoupon] = useState({
+    code: "",
+    description: "",
+    expiryDate: "",
+  });
+  const { isDark } = useTheme();
+
+  useEffect(() => {
+    fetchCoupons();
+    fetchClaims();
+  }, []);
+
+  const fetchCoupons = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/admin/coupons",
+        {
+          withCredentials: true,
+        }
+      );
+      setCoupons(response.data);
+    } catch (err) {
+      console.error("Error fetching coupons:", err);
+      toast.error("Failed to fetch coupons");
+    }
+  };
+
+  const fetchClaims = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/admin/claims",
+        {
+          withCredentials: true,
+        }
+      );
+      setClaims(response.data);
+    } catch (err) {
+      console.error("Error fetching claims:", err);
+      toast.error("Failed to fetch claims");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNewCouponChange = (e) => {
+    setNewCoupon({
+      ...newCoupon,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleAddCoupon = async (e) => {
+    e.preventDefault();
+    try {
+      // Validate inputs
+      if (!newCoupon.code || !newCoupon.description || !newCoupon.expiryDate) {
+        toast.error("Please fill in all fields");
+        return;
+      }
+
+      // Validate code is not "NULL" or empty
+      if (
+        newCoupon.code.trim().toUpperCase() === "NULL" ||
+        newCoupon.code.trim() === ""
+      ) {
+        toast.error("Invalid coupon code");
+        return;
+      }
+
+      // Validate description is not "null" or empty
+      if (
+        newCoupon.description.trim().toLowerCase() === "null" ||
+        newCoupon.description.trim() === ""
+      ) {
+        toast.error("Invalid description");
+        return;
+      }
+
+      // Validate expiry date
+      const expiryDate = new Date(newCoupon.expiryDate);
+      if (isNaN(expiryDate.getTime())) {
+        toast.error("Invalid expiry date");
+        return;
+      }
+
+      // Ensure expiry date is in the future
+      if (expiryDate <= new Date()) {
+        toast.error("Expiry date must be in the future");
+        return;
+      }
+
+      const couponData = {
+        code: newCoupon.code.trim().toUpperCase(),
+        description: newCoupon.description.trim(),
+        expiryDate: expiryDate.toISOString(),
+        isActive: true,
+        isUsed: false,
+        lastClaimAt: null,
+        claimedBy: [],
+      };
+
+      console.log("Attempting to create coupon with data:", couponData);
+
+      const response = await axios.post(
+        "http://localhost:5000/api/admin/coupons",
+        couponData,
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Server response:", response.data);
+      toast.success("Coupon added successfully");
+      setNewCoupon({ code: "", description: "", expiryDate: "" });
+      fetchCoupons();
+    } catch (err) {
+      console.error("Full error details:", {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+      });
+
+      let errorMessage = "Failed to add coupon";
+
+      if (err.response?.status === 401) {
+        errorMessage = "Please log in as admin first";
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+        if (err.response.data.details) {
+          errorMessage +=
+            ": " +
+            Object.values(err.response.data.details).filter(Boolean).join(", ");
+        }
+      } else if (err.message.includes("Network Error")) {
+        errorMessage =
+          "Cannot connect to server. Please check if the server is running.";
+      }
+
+      toast.error(errorMessage);
+    }
+  };
+
+  const toggleCouponStatus = async (id, currentStatus) => {
+    try {
+      await axios.put(
+        `http://localhost:5000/api/admin/coupons/${id}`,
+        { isActive: !currentStatus },
+        { withCredentials: true }
+      );
+      toast.success("Coupon status updated");
+      fetchCoupons();
+    } catch (err) {
+      console.error("Error updating coupon status:", err);
+      toast.error("Failed to update coupon status");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className={`text-center ${isDark ? "text-white" : "text-gray-900"}`}>
+        Loading...
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Left Column - Add New Coupon Form */}
+        <div
+          className={`${
+            isDark
+              ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 shadow-[0_0_30px_rgba(59,130,246,0.1)]"
+              : "bg-white shadow-[0_0_30px_rgba(59,130,246,0.05)]"
+          } p-6 rounded-lg shadow-lg transition-all duration-500 ease-in-out hover:shadow-xl relative 
+          before:absolute before:inset-0 before:rounded-lg before:p-[2px] before:bg-[length:200%_200%] ${
+            isDark
+              ? "before:bg-gradient-to-r before:from-violet-500 before:via-fuchsia-500 before:to-violet-500"
+              : "before:bg-gradient-to-r before:from-blue-400 before:via-cyan-400 before:to-blue-400"
+          } before:animate-shimmer before:opacity-0 hover:before:opacity-100 before:transition-all before:duration-500
+          after:absolute after:inset-[1px] after:rounded-lg after:bg-gradient-to-br ${
+            isDark
+              ? "after:from-gray-900 after:via-gray-800 after:to-gray-900 hover:shadow-[0_0_30px_rgba(139,92,246,0.3)]"
+              : "after:from-white after:to-white hover:shadow-[0_0_30px_rgba(59,130,246,0.3)]"
+          }`}
+        >
+          <div className="relative z-10">
+            <h2
+              className={`text-2xl font-bold mb-4 tracking-tight transition-colors duration-300 ${
+                isDark ? "text-blue-400" : "text-blue-600"
+              }`}
+            >
+              Add New Coupon
+            </h2>
+            <form onSubmit={handleAddCoupon} className="space-y-4">
+              <div>
+                <label
+                  className={`block text-sm font-medium transition-colors duration-300 ${
+                    isDark ? "text-gray-300" : "text-blue-700"
+                  }`}
+                >
+                  Code
+                </label>
+                <input
+                  type="text"
+                  name="code"
+                  value={newCoupon.code}
+                  onChange={handleNewCouponChange}
+                  required
+                  className={`mt-1 focus:outline-none block w-full rounded-md shadow-sm px-2 py-1 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300 ease-in-out ${
+                    isDark
+                      ? "bg-gray-800 border-gray-700 text-white hover:border-blue-500/50"
+                      : "bg-white border-blue-100 text-gray-900 hover:border-blue-300"
+                  }`}
+                />
+              </div>
+              <div>
+                <label
+                  className={`block text-sm font-medium transition-colors duration-300 ${
+                    isDark ? "text-gray-300" : "text-blue-700"
+                  }`}
+                >
+                  Description
+                </label>
+                <input
+                  type="text"
+                  name="description"
+                  value={newCoupon.description}
+                  onChange={handleNewCouponChange}
+                  required
+                  className={`mt-1 focus:outline-none block w-full rounded-md shadow-sm px-2 py-1 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300 ease-in-out ${
+                    isDark
+                      ? "bg-gray-800 border-gray-700 text-white hover:border-blue-500/50"
+                      : "bg-white border-blue-100 text-gray-900 hover:border-blue-300"
+                  }`}
+                />
+              </div>
+              <div>
+                <label
+                  className={`block text-sm font-medium transition-colors duration-300 ${
+                    isDark ? "text-gray-300" : "text-blue-700"
+                  }`}
+                >
+                  Expiry Date
+                </label>
+                <input
+                  type="datetime-local"
+                  name="expiryDate"
+                  value={newCoupon.expiryDate}
+                  onChange={handleNewCouponChange}
+                  required
+                  className={`mt-1 focus:outline-none block w-full rounded-md shadow-sm px-2 py-1 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300 ease-in-out ${
+                    isDark
+                      ? "bg-gray-800 border-gray-700 text-white hover:border-blue-500/50"
+                      : "bg-white border-blue-100 text-gray-900 hover:border-blue-300"
+                  }`}
+                />
+              </div>
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-all duration-300 ease-in-out hover:shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:scale-105 active:scale-95"
+              >
+                Add Coupon
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* Right Column - Recent Claims */}
+        <div
+          className={`${
+            isDark
+              ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 shadow-[0_0_30px_rgba(59,130,246,0.1)]"
+              : "bg-white shadow-[0_0_30px_rgba(59,130,246,0.05)]"
+          } p-6 rounded-lg shadow-lg transition-all duration-500 ease-in-out hover:shadow-xl relative 
+          before:absolute before:inset-0 before:rounded-lg before:p-[2px] before:bg-[length:200%_200%] ${
+            isDark
+              ? "before:bg-gradient-to-r before:from-violet-500 before:via-fuchsia-500 before:to-violet-500"
+              : "before:bg-gradient-to-r before:from-blue-400 before:via-cyan-400 before:to-blue-400"
+          } before:animate-shimmer before:opacity-0 hover:before:opacity-100 before:transition-all before:duration-500
+          after:absolute after:inset-[1px] after:rounded-lg after:bg-gradient-to-br ${
+            isDark
+              ? "after:from-gray-900 after:via-gray-800 after:to-gray-900 hover:shadow-[0_0_30px_rgba(139,92,246,0.3)]"
+              : "after:from-white after:to-white hover:shadow-[0_0_30px_rgba(59,130,246,0.3)]"
+          }`}
+        >
+          <div className="relative z-10">
+            <h2
+              className={`text-2xl font-bold mb-4 tracking-tight transition-colors duration-300 ${
+                isDark ? "text-blue-400" : "text-blue-600"
+              }`}
+            >
+              Recent Claims
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead
+                  className={`${
+                    isDark ? "bg-gray-800" : "bg-blue-50"
+                  } transition-colors duration-300`}
+                >
+                  <tr>
+                    <th
+                      className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                        isDark ? "text-gray-300" : "text-blue-700"
+                      }`}
+                    >
+                      Coupon Code
+                    </th>
+                    <th
+                      className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                        isDark ? "text-gray-300" : "text-blue-700"
+                      }`}
+                    >
+                      IP Address
+                    </th>
+                    <th
+                      className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                        isDark ? "text-gray-300" : "text-blue-700"
+                      }`}
+                    >
+                      Claimed At
+                    </th>
+                  </tr>
+                </thead>
+                <tbody
+                  className={`${
+                    isDark
+                      ? "bg-gray-900 divide-gray-800"
+                      : "bg-white divide-blue-100"
+                  } transition-colors duration-300`}
+                >
+                  {claims.slice(0, 5).map((claim) =>
+                    claim.claimedBy.map((claimInfo, index) => (
+                      <tr
+                        key={`${claim._id}-${index}`}
+                        className={`transition-all duration-300 ease-in-out ${
+                          isDark ? "hover:bg-gray-800" : "hover:bg-blue-50/50"
+                        }`}
+                      >
+                        <td
+                          className={`px-6 py-4 whitespace-nowrap ${
+                            isDark ? "text-white" : "text-gray-900"
+                          }`}
+                        >
+                          {claim.code}
+                        </td>
+                        <td
+                          className={`px-6 py-4 whitespace-nowrap ${
+                            isDark ? "text-white" : "text-gray-900"
+                          }`}
+                        >
+                          {claimInfo.ip}
+                        </td>
+                        <td
+                          className={`px-6 py-4 whitespace-nowrap ${
+                            isDark ? "text-white" : "text-gray-900"
+                          }`}
+                        >
+                          {new Date(claimInfo.claimedAt).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Section - Available Coupons */}
+      <div
+        className={`${
+          isDark
+            ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 shadow-[0_0_30px_rgba(59,130,246,0.1)]"
+            : "bg-white shadow-[0_0_30px_rgba(59,130,246,0.05)]"
+        } p-6 rounded-lg shadow-lg transition-all duration-500 ease-in-out hover:shadow-xl relative 
+        before:absolute before:inset-0 before:rounded-lg before:p-[2px] before:bg-[length:200%_200%] ${
+          isDark
+            ? "before:bg-gradient-to-r before:from-violet-500 before:via-fuchsia-500 before:to-violet-500"
+            : "before:bg-gradient-to-r before:from-blue-400 before:via-cyan-400 before:to-blue-400"
+        } before:animate-shimmer before:opacity-0 hover:before:opacity-100 before:transition-all before:duration-500
+        after:absolute after:inset-[1px] after:rounded-lg after:bg-gradient-to-br ${
+          isDark
+            ? "after:from-gray-900 after:via-gray-800 after:to-gray-900 hover:shadow-[0_0_30px_rgba(139,92,246,0.3)]"
+            : "after:from-white after:to-white hover:shadow-[0_0_30px_rgba(59,130,246,0.3)]"
+        }`}
+      >
+        <div className="relative z-10">
+          <h2
+            className={`text-2xl font-bold mb-4 tracking-tight transition-colors duration-300 ${
+              isDark ? "text-blue-400" : "text-blue-600"
+            }`}
+          >
+            Available Coupons
+          </h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead
+                className={`${
+                  isDark ? "bg-gray-800" : "bg-blue-50"
+                } transition-colors duration-300`}
+              >
+                <tr>
+                  <th
+                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                      isDark ? "text-gray-300" : "text-blue-700"
+                    }`}
+                  >
+                    Code
+                  </th>
+                  <th
+                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                      isDark ? "text-gray-300" : "text-blue-700"
+                    }`}
+                  >
+                    Description
+                  </th>
+                  <th
+                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                      isDark ? "text-gray-300" : "text-blue-700"
+                    }`}
+                  >
+                    Status
+                  </th>
+                  <th
+                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                      isDark ? "text-gray-300" : "text-blue-700"
+                    }`}
+                  >
+                    Expiry Date
+                  </th>
+                  <th
+                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                      isDark ? "text-gray-300" : "text-blue-700"
+                    }`}
+                  >
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                className={`${
+                  isDark
+                    ? "bg-gray-900 divide-gray-800"
+                    : "bg-white divide-blue-100"
+                } transition-colors duration-300`}
+              >
+                {coupons.map((coupon) => (
+                  <tr
+                    key={coupon._id}
+                    className={`transition-all duration-300 ease-in-out ${
+                      isDark ? "hover:bg-gray-800" : "hover:bg-cyan-100"
+                    }`}
+                  >
+                    <td
+                      className={`px-6 py-4 whitespace-nowrap ${
+                        isDark ? "text-white" : "text-gray-900"
+                      }`}
+                    >
+                      {coupon.code}
+                    </td>
+                    <td
+                      className={`px-6 py-4 ${
+                        isDark ? "text-white" : "text-gray-900"
+                      }`}
+                    >
+                      {coupon.description}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`px-3 py-1 inline-flex items-center gap-1.5 text-xs font-medium rounded-full transition-all duration-300 ease-in-out ${
+                          isDark
+                            ? "dark:bg-green-900/30 dark:text-green-400 dark:border-emerald-800/50"
+                            : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        } ${
+                          coupon.isActive
+                            ? ""
+                            : isDark
+                            ? "dark:bg-red-900/30 dark:text-red-400 dark:border-rose-800/50"
+                            : "bg-rose-50 text-rose-700 border border-rose-200"
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
+                            coupon.isActive
+                              ? "bg-emerald-500 dark:bg-emerald-400"
+                              : "bg-rose-500 dark:bg-rose-400"
+                          }`}
+                        ></span>
+                        {coupon.isActive ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td
+                      className={`px-6 py-4 whitespace-nowrap ${
+                        isDark ? "text-white" : "text-gray-900"
+                      }`}
+                    >
+                      {new Date(coupon.expiryDate).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={() =>
+                          toggleCouponStatus(coupon._id, coupon.isActive)
+                        }
+                        className={`px-3 py-1 rounded-md text-white transition-all duration-300 ease-in-out hover:scale-105 active:scale-95 ${
+                          coupon.isActive
+                            ? "bg-rose-500 hover:bg-rose-700 hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                            : "bg-green-500 hover:bg-green-600 hover:shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+                        }`}
+                      >
+                        {coupon.isActive ? "Deactivate" : "Activate"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes shimmer {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+        .animate-shimmer {
+          animation: shimmer 3s ease infinite;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+export default AdminDashboard;
