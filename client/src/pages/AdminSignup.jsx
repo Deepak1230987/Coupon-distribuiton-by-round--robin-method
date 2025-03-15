@@ -25,27 +25,76 @@ function AdminSignup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match");
+    // Basic validation
+    if (
+      !formData.username ||
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
+      toast.error("Please fill in all fields");
       return;
     }
 
-    // Validate password strength
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    // Password validation
     if (formData.password.length < 6) {
       toast.error("Password must be at least 6 characters long");
       return;
     }
 
+    // Confirm password
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
     setLoading(true);
     try {
-      await adminSignup(formData.username, formData.password, formData.email);
+      // Log the request data (remove in production)
+      console.log("Sending signup request with data:", {
+        username: formData.username,
+        email: formData.email,
+        password: "***", // Don't log actual password
+      });
+
+      const response = await adminSignup(
+        formData.username,
+        formData.password,
+        formData.email
+      );
+      console.log("Signup successful:", response);
       toast.success("Admin account created successfully!");
       navigate("/admin/login");
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Failed to create admin account"
-      );
+      console.error("Signup error details:", {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        url: error.config?.url,
+        method: error.config?.method,
+        headers: error.config?.headers,
+      });
+
+      let errorMessage = "Failed to create admin account";
+
+      if (error.response?.status === 500) {
+        errorMessage = "Server error. Please try again later.";
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message.includes("Network Error")) {
+        errorMessage =
+          "Cannot connect to server. Please check your internet connection.";
+      }
+
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
