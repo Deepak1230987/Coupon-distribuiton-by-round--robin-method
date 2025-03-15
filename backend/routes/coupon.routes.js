@@ -100,22 +100,35 @@ router.post('/claim', getClientInfo, checkCooldown, async (req, res) => {
         }
 
         // Update coupon with claim information
-        coupon.claimedBy.push({
+        const claimInfo = {
             ip: req.clientIp,
             sessionId: req.sessionId,
             claimedAt: new Date()
+        };
+
+        // Use findOneAndUpdate to atomically update the coupon
+        const updatedCoupon = await Coupon.findOneAndUpdate(
+            { _id: coupon._id, isUsed: false }, // ensure it's still available
+            {
+                $push: { claimedBy: claimInfo },
+                $set: {
+                    isUsed: true,
+                    lastClaimAt: new Date()
+                }
+            },
+            { new: true, runValidators: false } // get the updated document but skip validation
+        );
+
+        if (!updatedCoupon) {
+            console.log('Coupon was claimed by someone else');
+            return res.status(409).json({ message: 'Coupon is no longer available' });
+        }
+
+        console.log('Coupon claimed successfully:', {
+            ip: req.clientIp,
+            couponCode: updatedCoupon.code,
+            claimTime: new Date()
         });
-
-        coupon.isUsed = true;
-        coupon.lastClaimAt = new Date();
-
-        console.log('Saving coupon claim:', {
-            couponId: coupon._id,
-            code: coupon.code,
-            ip: req.clientIp
-        });
-
-        await coupon.save();
 
         // Set session cookie if not exists
         if (!req.cookies.sessionId && req.sessionId) {
@@ -127,18 +140,12 @@ router.post('/claim', getClientInfo, checkCooldown, async (req, res) => {
             });
         }
 
-        console.log('Coupon claimed successfully:', {
-            ip: req.clientIp,
-            couponCode: coupon.code,
-            claimTime: new Date()
-        });
-
         res.json({
             message: 'Coupon claimed successfully',
             coupon: {
-                code: coupon.code,
-                description: coupon.description,
-                expiryDate: coupon.expiryDate
+                code: updatedCoupon.code,
+                description: updatedCoupon.description,
+                expiryDate: updatedCoupon.expiryDate
             }
         });
     } catch (error) {

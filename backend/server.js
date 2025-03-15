@@ -7,6 +7,10 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 
 const app = express();
+
+// Enable trust proxy
+app.set('trust proxy', true);
+
 const allowedOrigins = [
     process.env.CLIENT_URL,
     process.env.LOCAL_CLIENT_URL, // ✅ Now includes localhost
