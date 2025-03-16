@@ -150,7 +150,7 @@ function AdminLogin() {
                     : "text-blue-600 hover:text-blue-500"
                 }`}
               >
-                Sign up 
+                Sign up
               </Link>
             </p>
           </form>
